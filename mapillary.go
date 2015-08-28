@@ -20,9 +20,18 @@
 // Package mapillary implements functions to get images from the Mapillary storage.
 package mapillary
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+	"path"
+)
 
 // GetImageURL returns the URL of an image in the Mapillary storage.
 func GetImageURL(key string, size int) (string, error) {
-	return fmt.Sprintf("https://d1cuyjsrcm0gby.cloudfront.net/%s/thumb-%d.jpg", key, size), nil
+	u := url.URL{
+		Scheme: "https",
+		Host:   "d1cuyjsrcm0gby.cloudfront.net",
+	}
+	u.Path = path.Join(key, fmt.Sprintf("thumb-%d.jpg", size))
+	return u.String(), nil
 }
