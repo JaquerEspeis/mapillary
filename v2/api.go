@@ -22,7 +22,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -64,6 +63,5 @@ func (c *Client) Get(path string, params url.Values, response interface{}) error
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(body))
 	return json.Unmarshal(body, &response)
 }
