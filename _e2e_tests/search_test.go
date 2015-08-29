@@ -20,9 +20,8 @@
 package tests
 
 import (
-
-	// Imported to allow image.Decode to understand JPEG formatted images.
 	"image"
+	// Imported to allow image.Decode to understand JPEG formatted images.
 	_ "image/jpeg"
 	"io/ioutil"
 	"net/url"
