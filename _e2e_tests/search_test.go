@@ -20,6 +20,7 @@
 package tests
 
 import (
+	"encoding/json"
 	"image"
 	// Imported to allow image.Decode to understand JPEG formatted images.
 	_ "image/jpeg"
@@ -35,8 +36,6 @@ import (
 	"github.com/JaquerEspeis/mapillary/v2"
 )
 
-const clientID = "WHJxWW40RWhyVGR6ajVEci1saHZNUTo1MmE5NGRhZjYzZGYxNWQw"
-
 // Hook up gocheck into the "go test" runner.
 func Test(t *testing.T) { check.TestingT(t) }
 
@@ -44,8 +43,24 @@ type SearchSuite struct{}
 
 var _ = check.Suite(&SearchSuite{})
 
+type conf struct {
+	ClientID string
+}
+
+func clientID(c *check.C) string {
+	confFile, err := os.Open("conf.json")
+	c.Assert(err, check.IsNil, check.Commentf("Error opening conf file: %s", err))
+	defer confFile.Close()
+	var config conf
+	confFileContents, err := ioutil.ReadAll(confFile)
+	c.Assert(err, check.IsNil, check.Commentf("Error reading the conf file: %s", err))
+	err = json.Unmarshal(confFileContents, &config)
+	c.Assert(err, check.IsNil, check.Commentf("Error unmarshaling JSON config: %s", err))
+	return config.ClientID
+}
+
 func (s *SearchSuite) TestSearchImRandomSelected(c *check.C) {
-	client := api.NewClient(clientID)
+	client := api.NewClient(clientID(c))
 	var response api.GetSearchImRandomSelect
 	err := client.Get("search/im/randomselected", url.Values{}, &response)
 	c.Assert(err, check.IsNil, check.Commentf("Error on request: %s", err))
