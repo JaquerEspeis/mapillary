@@ -22,7 +22,10 @@ package mapillary
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
+	"os"
 	"path"
 )
 
@@ -34,4 +37,24 @@ func GetImageURL(key string, size int) (string, error) {
 	}
 	u.Path = path.Join(key, fmt.Sprintf("thumb-%d.jpg", size))
 	return u.String(), nil
+}
+
+// DownloadImage downloads an image from the Mapillary storage.
+func DownloadImage(key string, size int, imgPath string) error {
+	u, err := GetImageURL(key, size)
+	if err != nil {
+		return err
+	}
+	resp, err := http.Get(u)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	imgFile, err := os.Create(imgPath)
+	if err != nil {
+		return err
+	}
+	defer imgFile.Close()
+	_, err = io.Copy(imgFile, resp.Body)
+	return err
 }

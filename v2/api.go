@@ -72,5 +72,5 @@ func (c *Client) Request(method, path string, params url.Values, response interf
 
 // Get performs an HTTP Request to the Mapillary API.
 func (c *Client) Get(path string, params url.Values, response interface{}) error {
-	return c.Request("GET", path, params, response)
+	return c.Request("GET", path, params, &response)
 }
