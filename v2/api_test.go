@@ -48,7 +48,7 @@ func (s *APIv2Suite) TestNewClientMustUseID(c *check.C) {
 	c.Assert(client.ID, check.Equals, "test-id", check.Commentf("Wrong ID"))
 }
 
-func (s *APIv2Suite) TestGetMustAppendPathToURL(c *check.C) {
+func (s *APIv2Suite) TestRequestMustAppendPathToURL(c *check.C) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c.Assert(r.URL.Path, check.Equals, "/test-version/test-path", check.Commentf("Wrong path"))
 		io.WriteString(w, "{}")
@@ -64,11 +64,11 @@ func (s *APIv2Suite) TestGetMustAppendPathToURL(c *check.C) {
 	client.URL.Path = "test-version"
 
 	var r interface{}
-	err = client.Get("test-path", url.Values{}, &r)
-	c.Assert(err, check.IsNil, check.Commentf("Error on get: %s", err))
+	err = client.Request("dummy-method", "test-path", url.Values{}, &r)
+	c.Assert(err, check.IsNil, check.Commentf("Error on request: %s", err))
 }
 
-func (s *APIv2Suite) TestGetMustAppendClientIDToURL(c *check.C) {
+func (s *APIv2Suite) TestRequestMustAppendClientIDToURL(c *check.C) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c.Assert(r.URL.Query()["client_id"], check.DeepEquals, []string{"test-id"},
 			check.Commentf("Wrong client ID query"))
@@ -85,11 +85,11 @@ func (s *APIv2Suite) TestGetMustAppendClientIDToURL(c *check.C) {
 	client.URL = *mockServerURL
 
 	var r interface{}
-	err = client.Get("test-path", url.Values{}, &r)
-	c.Assert(err, check.IsNil, check.Commentf("Error on get: %s", err))
+	err = client.Request("dummy-method", "test-path", url.Values{}, &r)
+	c.Assert(err, check.IsNil, check.Commentf("Error on request: %s", err))
 }
 
-func (s *APIv2Suite) TestGetMustAppendParamsToURL(c *check.C) {
+func (s *APIv2Suite) TestRequestMustAppendParamsToURL(c *check.C) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c.Check(r.URL.Query()["test-param1"], check.DeepEquals, []string{"test-value1"},
 			check.Commentf("Wrong param value"))
@@ -112,12 +112,12 @@ func (s *APIv2Suite) TestGetMustAppendParamsToURL(c *check.C) {
 		"test-param1": {"test-value1"},
 		"test-param2": {"test-value2"},
 	}
-	err = client.Get("test-path", params, &r)
+	err = client.Request("dummy-method", "test-path", params, &r)
 
-	c.Assert(err, check.IsNil, check.Commentf("Error on get: %s", err))
+	c.Assert(err, check.IsNil, check.Commentf("Error on request: %s", err))
 }
 
-func (s *APIv2Suite) TestGetMustReturnJSON(c *check.C) {
+func (s *APIv2Suite) TestRequestMustReturnJSON(c *check.C) {
 	testJSON := map[string]interface{}{
 		"test-param1": "test-value1",
 		"test-param2": "test-value2",
@@ -143,8 +143,27 @@ func (s *APIv2Suite) TestGetMustReturnJSON(c *check.C) {
 		"test-param1": {"test-value1"},
 		"test-param2": {"test-value2"},
 	}
-	err = client.Get("test-path", params, &r)
-	c.Assert(err, check.IsNil, check.Commentf("Error on get: %s", err))
+	err = client.Request("dummy-method", "test-path", params, &r)
+	c.Assert(err, check.IsNil, check.Commentf("Error on request: %s", err))
 
 	c.Assert(r, check.DeepEquals, testJSON)
+}
+
+func (s *APIv2Suite) TestGetMustSetRequestMethod(c *check.C) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c.Assert(r.Method, check.Equals, "GET", check.Commentf("Wrong method"))
+		io.WriteString(w, "{}")
+	}))
+	c.Assert(mockServer, check.NotNil, check.Commentf("Error creating mock server"))
+	defer mockServer.Close()
+
+	mockServerURL, err := url.Parse(mockServer.URL)
+	c.Assert(err, check.IsNil, check.Commentf("Error parsing URL: %s", err))
+
+	client := NewClient("dummy-id")
+	client.URL = *mockServerURL
+
+	var r interface{}
+	err = client.Get("test-path", url.Values{}, &r)
+	c.Assert(err, check.IsNil, check.Commentf("Error on get: %s", err))
 }

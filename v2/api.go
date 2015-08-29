@@ -49,12 +49,16 @@ func NewClient(ID string) *Client {
 	return &Client{HTTPClient: &http.Client{}, URL: mapillaryV2URL, ID: ID}
 }
 
-// Get performs an HTTP GET to the Mapillary API.
-func (c *Client) Get(path string, params url.Values, response interface{}) error {
+// Request performs an HTTP Request to the Mapillary API.
+func (c *Client) Request(method, path string, params url.Values, response interface{}) error {
 	params.Add("client_id", c.ID)
 	c.URL.Path = pkgpath.Join(c.URL.Path, path)
 	c.URL.RawQuery = params.Encode()
-	r, err := c.HTTPClient.Get(c.URL.String())
+	request, err := http.NewRequest(method, c.URL.String(), nil)
+	if err != nil {
+		return err
+	}
+	r, err := c.HTTPClient.Do(request)
 	if err != nil {
 		return err
 	}
@@ -64,4 +68,9 @@ func (c *Client) Get(path string, params url.Values, response interface{}) error
 		return err
 	}
 	return json.Unmarshal(body, &response)
+}
+
+// Get performs an HTTP Request to the Mapillary API.
+func (c *Client) Get(path string, params url.Values, response interface{}) error {
+	return c.Request("GET", path, params, response)
 }
